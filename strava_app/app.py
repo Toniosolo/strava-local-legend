@@ -24,9 +24,9 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 
 # ── CONFIG ───────────────────────────────────────────────────
-STRAVA_CLIENT_ID     = os.environ.get("237652", "")
-STRAVA_CLIENT_SECRET = os.environ.get("5552fe6b6410349a1e73453962fc1d8583d5b574", "")
-ORS_KEY              = os.environ.get("eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImM0M2VlN2RkMmUyNTQ1N2FhMjIyMDEwZTExZWU5Y2U0IiwiaCI6Im11cm11cjY0In0=", "")
+STRAVA_CLIENT_ID     = os.environ.get("STRAVA_CLIENT_ID", "")
+STRAVA_CLIENT_SECRET = os.environ.get("STRAVA_CLIENT_SECRET", "")
+ORS_KEY              = os.environ.get("ORS_KEY=", "")
 BASE_URL             = "https://www.strava.com/api/v3"
 DAYS                 = 7
 CACHE_DIR            = "user_cache"
