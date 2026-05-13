@@ -126,7 +126,7 @@ def index():
 def login():
     params = {
         "client_id":       STRAVA_CLIENT_ID,
-        "redirect_uri":    request.host_url.rstrip("/") + "/callback",
+        "redirect_uri": request.url_root.rstrip("/").replace("http://", "https://") + "/callback",
         "response_type":   "code",
         "approval_prompt": "auto",
         "scope":           "read,activity:read_all",
