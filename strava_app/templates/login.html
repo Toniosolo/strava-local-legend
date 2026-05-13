@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Strava Local Legend - Mont-Royal</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body {
+    font-family:-apple-system,sans-serif; background:#f5f5f5;
+    display:flex; align-items:center; justify-content:center; min-height:100vh;
+  }
+  .card {
+    background:white; border-radius:16px; padding:40px 36px;
+    box-shadow:0 4px 24px rgba(0,0,0,0.10); text-align:center;
+    max-width:400px; width:90%;
+  }
+  .logo {
+    width:64px; height:64px; background:#FC4C02; border-radius:16px;
+    display:flex; align-items:center; justify-content:center; margin:0 auto 20px;
+  }
+  .logo svg { width:36px; height:36px; fill:white; }
+  h1 { font-size:22px; font-weight:600; color:#222; margin-bottom:8px; }
+  p  { font-size:14px; color:#888; line-height:1.6; margin-bottom:28px; }
+  .connect-btn {
+    display:inline-flex; align-items:center; gap:10px;
+    background:#FC4C02; color:white; border:none; border-radius:10px;
+    padding:14px 28px; font-size:15px; font-weight:600; cursor:pointer;
+    text-decoration:none; transition:opacity 0.15s;
+  }
+  .connect-btn:hover { opacity:0.88; }
+  .connect-btn svg { width:20px; height:20px; fill:white; }
+  .note { font-size:12px; color:#bbb; margin-top:20px; }
+  .features {
+    display:grid; grid-template-columns:1fr 1fr; gap:10px;
+    margin-bottom:24px; text-align:left;
+  }
+  .feature {
+    background:#f9f9f9; border-radius:10px; padding:12px;
+    font-size:12px; color:#555; line-height:1.5;
+  }
+  .feature b { display:block; color:#222; margin-bottom:3px; font-size:13px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <svg viewBox="0 0 24 24"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+  </div>
+  <h1>Local Legend Dashboard</h1>
+  <p>Visualise tes segments du Mont-Royal, suis les locales legendes et cree des parcours personnalises.</p>
+
+  <div class="features">
+    <div class="feature"><b>🗺️ Carte interactive</b>Segments colores par priorite</div>
+    <div class="feature"><b>👑 Local Legend</b>Compare tes efforts au leader</div>
+    <div class="feature"><b>🏃 Parcours</b>Genere des itineraires via ORS</div>
+    <div class="feature"><b>📤 Export GPX</b>Importe dans Strava / Garmin</div>
+  </div>
+
+  {% if request.args.get('error') %}
+  <p style="color:#e53e3e;margin-bottom:16px;">Connexion annulee. Reessaie !</p>
+  {% endif %}
+
+  <a class="connect-btn" href="/login">
+    <svg viewBox="0 0 24 24"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+    Se connecter avec Strava
+  </a>
+  <div class="note">Acces en lecture seule. Aucune donnee stockee en dehors du serveur.</div>
+</div>
+</body>
+</html>

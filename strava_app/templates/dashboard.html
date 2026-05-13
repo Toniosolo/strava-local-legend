@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Strava Local Legend - Mont-Royal</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { display:flex; height:100vh; font-family:-apple-system,sans-serif; }
+  #sidebar {
+    width:340px; min-width:260px; height:100vh; background:#fff;
+    display:flex; flex-direction:column; box-shadow:2px 0 8px rgba(0,0,0,0.10); z-index:1000;
+  }
+  #sidebar-header { padding:12px 16px 10px; border-bottom:1px solid #eee; }
+  .header-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
+  .athlete-info { display:flex; align-items:center; gap:8px; }
+  .athlete-avatar {
+    width:30px; height:30px; border-radius:50%; object-fit:cover;
+    background:#FC4C02; display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:600; color:white; flex-shrink:0;
+  }
+  .athlete-name { font-size:13px; font-weight:600; color:#222; }
+  .logout-btn { font-size:11px; color:#888; text-decoration:none; padding:3px 8px; border:1px solid #eee; border-radius:6px; }
+  .logout-btn:hover { background:#f5f5f5; }
+  #header-sub { font-size:11px; color:#888; }
+  #filters { padding:10px 16px; border-bottom:1px solid #eee; background:#fafafa; }
+  .filter-row { margin-bottom:8px; }
+  .filter-row:last-child { margin-bottom:0; }
+  .filter-label { display:flex; justify-content:space-between; font-size:11px; color:#555; margin-bottom:3px; }
+  .filter-label span { font-weight:600; color:#222; }
+  input[type=range] { width:100%; accent-color:#FC4C02; cursor:pointer; }
+  #segment-list { flex:1; overflow-y:auto; padding:4px 0; }
+  .seg-count { font-size:11px; color:#888; padding:5px 16px; }
+  .seg-row { display:flex; align-items:center; gap:8px; padding:8px 12px; cursor:pointer; border-bottom:1px solid #f0f0f0; transition:background 0.15s; }
+  .seg-row:hover { background:#f9f9f9; }
+  .seg-row.active { background:#fff8f5; border-left:3px solid #FC4C02; padding-left:9px; }
+  .seg-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+  .seg-info { flex:1; min-width:0; }
+  .seg-name { font-size:12px; font-weight:500; color:#222; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .seg-meta { font-size:10px; color:#888; margin-top:1px; }
+  .seg-indic { font-size:10px; font-weight:600; padding:1px 5px; border-radius:99px; background:#f0f0f0; color:#444; flex-shrink:0; }
+  .seg-add-btn {
+    flex-shrink:0; width:20px; height:20px; border-radius:50%;
+    border:1.5px solid #FC4C02; background:#fff; color:#FC4C02;
+    font-size:13px; font-weight:700; cursor:pointer; line-height:1;
+    display:flex; align-items:center; justify-content:center; padding:0; transition:all 0.15s;
+  }
+  .seg-add-btn:hover { background:#FC4C02; color:white; }
+  .seg-add-btn.selected { background:#FC4C02; color:white; }
+  #reset-btn { margin:6px 16px; padding:7px; border:none; border-radius:8px; background:#f0f0f0; color:#555; font-size:12px; cursor:pointer; width:calc(100% - 32px); }
+  #reset-btn:hover { background:#e0e0e0; }
+  #legend { padding:8px 16px; border-top:1px solid #eee; font-size:11px; color:#555; }
+  .legend-bar { height:6px; border-radius:3px; margin:4px 0 3px; background:linear-gradient(to right,#00ff00,#ff8800,#ff0000); }
+  .legend-labels { display:flex; justify-content:space-between; font-size:10px; color:#888; }
+  #map { flex:1; height:100vh; position:relative; }
+  #loading {
+    position:absolute; top:0; left:0; right:0; bottom:0;
+    background:rgba(255,255,255,0.93); display:flex; flex-direction:column;
+    align-items:center; justify-content:center; z-index:2000;
+  }
+  .spinner { width:36px; height:36px; border:3px solid #eee; border-top-color:#FC4C02; border-radius:50%; animation:spin 0.8s linear infinite; margin-bottom:14px; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .loading-text { font-size:14px; color:#555; }
+  .loading-sub  { font-size:12px; color:#aaa; margin-top:5px; }
+  #route-panel {
+    position:absolute; top:12px; right:12px; z-index:1001;
+    background:#fff; border-radius:12px; width:300px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.15); overflow:hidden;
+  }
+  #route-panel button { font-family:-apple-system,sans-serif; }
+  .rp-header { background:#FC4C02; padding:11px 16px; cursor:pointer; display:flex; align-items:center; justify-content:space-between; }
+  .rp-body { padding:12px 14px; display:none; max-height:80vh; overflow-y:auto; }
+  .rp-section { font-size:11px; font-weight:600; color:#555; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px; margin-top:6px; }
+  .rp-btn { width:100%; padding:7px 10px; border-radius:8px; font-size:12px; cursor:pointer; font-weight:500; border:1.5px solid #ddd; background:#fff; color:#555; transition:all 0.15s; text-align:left; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .rp-btn.active { border-color:#FC4C02; color:#FC4C02; background:#fff8f5; }
+  .rp-hint { font-size:10px; color:#FC4C02; text-align:center; min-height:14px; margin-bottom:4px; }
+  .rp-row { margin-bottom:8px; }
+  .rp-lbl { display:flex; justify-content:space-between; font-size:11px; color:#555; margin-bottom:2px; }
+  .rp-lbl b { color:#222; }
+  .rp-actions { display:flex; gap:8px; margin-top:8px; }
+  .rp-generate { flex:1; padding:9px; border-radius:8px; border:none; background:#FC4C02; color:white; font-size:13px; font-weight:600; cursor:pointer; }
+  .rp-generate:hover { opacity:0.88; }
+  .rp-clear-route { padding:9px 12px; border-radius:8px; border:1.5px solid #ddd; background:#fff; color:#555; font-size:12px; cursor:pointer; }
+  .rp-clear-route:hover { background:#f5f5f5; }
+  .rp-status { font-size:11px; text-align:center; margin-top:6px; min-height:14px; color:#888; }
+  .rp-results { display:none; margin-top:8px; }
+  .rp-export { width:100%; margin-top:8px; padding:7px; border-radius:8px; border:1.5px solid #FC4C02; background:#fff; color:#FC4C02; font-size:12px; font-weight:500; cursor:pointer; }
+  hr.rp { border:none; border-top:1px solid #eee; margin:8px 0; }
+  .rp-segs-list { font-size:11px; color:#555; max-height:150px; overflow-y:auto; }
+  .rp-seg-item { display:flex; align-items:flex-start; justify-content:space-between; padding:4px 0; border-bottom:1px solid #f5f5f5; gap:6px; }
+  .rp-seg-name { flex:1; min-width:0; line-height:1.4; }
+  .rp-seg-name small { display:block; color:#aaa; font-size:10px; margin-top:1px; }
+  .rp-seg-badge { flex-shrink:0; font-size:10px; font-weight:600; padding:1px 5px; border-radius:99px; background:#FC4C0218; color:#FC4C02; }
+  .rp-seg-badge.done { background:#38a16918; color:#38a169; }
+  .via-list { font-size:11px; color:#FC4C02; margin-bottom:6px; min-height:14px; }
+  .via-hint { font-size:10px; color:#aaa; margin-bottom:6px; }
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <div id="sidebar-header">
+    <div class="header-top">
+      <div class="athlete-info">
+        {% if athlete.profile and 'avatar/athlete/large' not in athlete.profile %}
+          <img class="athlete-avatar" src="{{ athlete.profile }}" alt="avatar">
+        {% else %}
+          <div class="athlete-avatar">{{ athlete.firstname[0] }}{{ athlete.lastname[0] }}</div>
+        {% endif %}
+        <span class="athlete-name">{{ athlete.firstname }} {{ athlete.lastname }}</span>
+      </div>
+      <a class="logout-btn" href="/logout">Deconnexion</a>
+    </div>
+    <div id="header-sub">Chargement des segments...</div>
+  </div>
+
+  <div id="filters" style="display:none;">
+    <div class="filter-row">
+      <div class="filter-label">Distance min. <span id="dist-val">0 km</span></div>
+      <input type="range" id="slider-dist" min="0" max="10" step="0.1" value="0" oninput="applyFilters()">
+    </div>
+    <div class="filter-row">
+      <div class="filter-label">Denivele min. <span id="elev-val">0 m</span></div>
+      <input type="range" id="slider-elev" min="0" max="200" step="1" value="0" oninput="applyFilters()">
+    </div>
+  </div>
+
+  <div class="seg-count" id="seg-count"></div>
+  <div id="segment-list"></div>
+  <button id="reset-btn" onclick="resetAll()" style="display:none;">Tout afficher</button>
+
+  <div id="legend" style="display:none;">
+    <b>Priorite Local Legend</b>
+    <div class="legend-bar"></div>
+    <div class="legend-labels"><span>Facile (0.0)</span><span>Difficile (1.0)</span></div>
+  </div>
+</div>
+
+<div id="map">
+  <div id="loading">
+    <div class="spinner"></div>
+    <div class="loading-text">Analyse de tes activites...</div>
+    <div class="loading-sub">Recuperation des segments et local legends</div>
+  </div>
+
+  <div id="route-panel">
+    <div class="rp-header" onclick="togglePanel()">
+      <b style="color:white;font-size:13px;">Creer un parcours</b>
+      <span id="panel-arrow" style="color:white;font-size:11px;">v</span>
+    </div>
+    <div class="rp-body" id="panel-body">
+
+      <div class="rp-section">Points</div>
+      <button class="rp-btn" id="btn-start" onclick="setPickMode('start')">Depart</button>
+      <button class="rp-btn" id="btn-end"   onclick="setPickMode('end')">Arrivee = Depart (boucle)</button>
+      <div class="rp-hint" id="pick-hint"></div>
+
+      <div class="rp-section">Segments a inclure</div>
+      <div class="via-list" id="via-list">Aucun segment selectionne</div>
+      <div class="via-hint">Clique sur + dans la liste a gauche</div>
+
+      <hr class="rp">
+      <div class="rp-section">Contraintes</div>
+
+      <div class="rp-row">
+        <div class="rp-lbl">Distance cible <b id="lbl-dist-target">10 km</b></div>
+        <input type="range" id="sl-dist-target" min="1" max="42" step="0.5" value="10"
+               style="width:100%;accent-color:#FC4C02;"
+               oninput="document.getElementById('lbl-dist-target').textContent=this.value+' km'">
+      </div>
+      <div class="rp-row">
+        <div class="rp-lbl">Denivele min. <b id="lbl-elev-min">0 m</b></div>
+        <input type="range" id="sl-elev-min" min="0" max="600" step="10" value="0"
+               style="width:100%;accent-color:#FC4C02;"
+               oninput="document.getElementById('lbl-elev-min').textContent=this.value+' m'">
+      </div>
+      <div class="rp-row">
+        <div class="rp-lbl" style="margin-bottom:5px;">Temps cible (optionnel)</div>
+        <div style="display:flex;gap:5px;align-items:center;">
+          <input type="number" id="inp-time" placeholder="min" min="10" max="300"
+                 style="flex:1;padding:5px 7px;border-radius:8px;border:1px solid #ddd;font-size:12px;"
+                 oninput="syncDistFromTime()">
+          <span style="font-size:11px;color:#555;">min a</span>
+          <input type="number" id="inp-pace" value="5.5" min="3" max="15" step="0.1"
+                 style="width:60px;padding:5px 7px;border-radius:8px;border:1px solid #ddd;font-size:12px;"
+                 oninput="syncDistFromTime()">
+          <span style="font-size:11px;color:#555;">min/km</span>
+        </div>
+      </div>
+
+      <div class="rp-actions">
+        <button class="rp-generate" onclick="generateRoute()">Generer</button>
+        <button class="rp-clear-route" onclick="resetRoute()">Effacer</button>
+      </div>
+      <div class="rp-status" id="route-status"></div>
+
+      <div class="rp-results" id="route-results">
+        <hr class="rp">
+        <div class="rp-section">Parcours genere</div>
+        <div id="route-stats" style="font-size:11px;color:#555;line-height:1.8;margin-bottom:6px;"></div>
+        <div class="rp-section">Segments a faire</div>
+        <div class="rp-segs-list" id="route-segs"></div>
+        <button class="rp-export" onclick="exportGPX()">Exporter en GPX</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const ORS_KEY  = "{{ ors_key }}";
+let SEGMENTS   = [];
+let map, polylines = {}, selectedIdx = null, visibleIdxs = new Set();
+let pickMode = null, startPoint = null, endPoint = null;
+let startMarker = null, endMarker = null;
+let routeLayers = [], routeGPXData = [], routeSegs = [];
+let selectedViaSegs = [];
+
+map = L.map('map').setView([45.5048, -73.5877], 14);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+  attribution: 'OpenStreetMap / CartoDB', maxZoom: 19
+}).addTo(map);
+
+async function loadSegments() {
+  try {
+    const res  = await fetch('/api/segments');
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    SEGMENTS    = data.segments;
+    visibleIdxs = new Set(SEGMENTS.map(s => s.idx));
+
+    const distMax = Math.max(...SEGMENTS.map(s => s.distance_km), 1);
+    const elevMax = Math.max(...SEGMENTS.map(s => s.denivele_m), 10);
+    document.getElementById('slider-dist').max = distMax.toFixed(1);
+    document.getElementById('slider-elev').max = elevMax.toFixed(0);
+
+    SEGMENTS.forEach(seg => {
+      if (!seg.trace || seg.trace.length === 0) return;
+      const pl = L.polyline(seg.trace, { color: seg.color, weight: 5, opacity: 0.85 }).addTo(map);
+      pl.bindPopup(buildPopup(seg), { maxWidth: 270 });
+      pl.on('click', () => selectSegment(seg.idx));
+      polylines[seg.idx] = pl;
+      L.circleMarker(seg.trace[0], { radius:5, color:'white', weight:2, fillColor:seg.color, fillOpacity:1 })
+        .addTo(map).on('click', () => selectSegment(seg.idx));
+    });
+
+    if (SEGMENTS.length > 0) {
+      const lats = SEGMENTS.filter(s => s.lat).map(s => s.lat);
+      const lngs = SEGMENTS.filter(s => s.lng).map(s => s.lng);
+      if (lats.length > 0)
+        map.fitBounds([[Math.min(...lats), Math.min(...lngs)],[Math.max(...lats), Math.max(...lngs)]], { padding:[30,30] });
+    }
+
+    document.getElementById('header-sub').textContent   = SEGMENTS.length + ' segments - 7 derniers jours';
+    document.getElementById('filters').style.display    = 'block';
+    document.getElementById('reset-btn').style.display  = 'block';
+    document.getElementById('legend').style.display     = 'block';
+    document.getElementById('loading').style.display    = 'none';
+    buildList();
+  } catch(e) {
+    document.querySelector('.loading-text').textContent = 'Erreur : ' + e.message;
+    document.querySelector('.loading-sub').textContent  = 'Recharge la page ou reconnecte-toi.';
+    document.querySelector('.spinner').style.display    = 'none';
+  }
+}
+
+function buildPopup(seg) {
+  const diff          = seg.indic_norm < 0.33 ? 'Prioritaire' : seg.indic_norm < 0.66 ? 'Moyen' : 'Difficile';
+  const effortsAFaire = seg.ecart > 0 ? seg.ecart + 1 : seg.ecart === 0 ? 1 : 0;
+  const distTotale    = (effortsAFaire * seg.distance_km * 1000).toFixed(0);
+  const elevTotale    = (effortsAFaire * seg.denivele_m).toFixed(0);
+  const llBlock = effortsAFaire > 0
+    ? "<hr style='border:none;border-top:1px solid #eee;margin:7px 0;'>" +
+      "<b>Pour devenir Local Legend :</b><br>" +
+      "Efforts a faire : <b>" + effortsAFaire + "</b><br>" +
+      "Distance totale : <b>" + distTotale + " m</b><br>" +
+      "D+ total : <b>" + elevTotale + " m</b>"
+    : "<hr style='border:none;border-top:1px solid #eee;margin:7px 0;'>" +
+      "<span style='color:#38a169;font-weight:600;'>Tu es deja Local Legend !</span>";
+  return "<div style='font-family:sans-serif;font-size:12px;min-width:190px;'>" +
+    "<b style='font-size:13px;color:#FC4C02;'>" + seg.segment + "</b><br><br>" +
+    "<b>Distance :</b> " + seg.distance_km.toFixed(2) + " km &nbsp; <b>D+ :</b> " + seg.denivele_m.toFixed(0) + " m<br><br>" +
+    "<b>Local Legend :</b> " + seg.ll_name + "<br>" +
+    "<b>LL :</b> " + seg.ll_efforts + " &nbsp; <b>Moi :</b> " + seg.my_efforts + "<br>" +
+    "<b>Ecart :</b> " + (seg.ecart > 0 ? "-" : seg.ecart < 0 ? "+" : "") + Math.abs(seg.ecart) +
+    llBlock + "<br><br>" +
+    "<b>Priorite :</b> <span style='color:" + seg.color + ";font-weight:bold;'>" + seg.indic_norm.toFixed(2) + "</span> " + diff + "<br>" +
+    "<a href='https://www.strava.com/segments/" + seg.segment_id + "' target='_blank' style='color:#FC4C02;'>Voir sur Strava</a></div>";
+}
+
+function buildList() {
+  const list = document.getElementById('segment-list');
+  list.innerHTML = '';
+  let count = 0;
+  SEGMENTS.forEach(seg => {
+    if (!visibleIdxs.has(seg.idx)) return;
+    count++;
+    const isSelected = selectedViaSegs.some(s => s.idx === seg.idx);
+    const row = document.createElement('div');
+    row.className = 'seg-row' + (seg.idx === selectedIdx ? ' active' : '');
+    row.id = 'row-' + seg.idx;
+    row.innerHTML =
+      '<div class="seg-dot" style="background:' + seg.color + '"></div>' +
+      '<div class="seg-info">' +
+        '<div class="seg-name">' + seg.segment + '</div>' +
+        '<div class="seg-meta">' + seg.distance_km.toFixed(2) + ' km · ' + seg.denivele_m.toFixed(0) +
+        ' m D+ · LL: ' + seg.ll_efforts + ' · Moi: ' + seg.my_efforts +
+        ' · Ecart: ' + (seg.ecart > 0 ? '-' : '+') + Math.abs(seg.ecart) + '</div>' +
+      '</div>' +
+      '<div class="seg-indic">' + seg.indic_norm.toFixed(2) + '</div>' +
+      '<button class="seg-add-btn' + (isSelected ? ' selected' : '') + '" id="add-btn-' + seg.idx + '"' +
+        ' onclick="toggleVia(' + seg.idx + ', event)" title="Ajouter au parcours">' +
+        (isSelected ? '&#10003;' : '+') + '</button>';
+    row.onclick = () => selectSegment(seg.idx);
+    list.appendChild(row);
+  });
+  document.getElementById('seg-count').textContent =
+    count + ' segment' + (count > 1 ? 's' : '') + ' affiche' + (count > 1 ? 's' : '');
+}
+
+function toggleVia(idx, event) {
+  event.stopPropagation();
+  const seg = SEGMENTS.find(s => s.idx === idx);
+  if (!seg) return;
+  const i = selectedViaSegs.findIndex(s => s.idx === idx);
+  if (i >= 0) {
+    selectedViaSegs.splice(i, 1);
+    const btn = document.getElementById('add-btn-' + idx);
+    if (btn) { btn.innerHTML = '+'; btn.classList.remove('selected'); }
+  } else {
+    if (selectedViaSegs.length >= 10) { setStatus('Maximum 10 segments.', '#e53e3e'); return; }
+    selectedViaSegs.push(seg);
+    const btn = document.getElementById('add-btn-' + idx);
+    if (btn) { btn.innerHTML = '&#10003;'; btn.classList.add('selected'); }
+  }
+  const el = document.getElementById('via-list');
+  el.innerHTML = selectedViaSegs.length === 0
+    ? 'Aucun segment selectionne'
+    : selectedViaSegs.map((s,i) => '<span style="display:block;">'+(i+1)+'. '+s.segment.substring(0,32)+'</span>').join('');
+}
+
+function applyFilters() {
+  const minDist = parseFloat(document.getElementById('slider-dist').value);
+  const minElev = parseFloat(document.getElementById('slider-elev').value);
+  document.getElementById('dist-val').textContent = minDist.toFixed(1) + ' km';
+  document.getElementById('elev-val').textContent = minElev.toFixed(0) + ' m';
+  visibleIdxs = new Set();
+  SEGMENTS.forEach(seg => {
+    const show = seg.distance_km >= minDist && seg.denivele_m >= minElev;
+    if (show) visibleIdxs.add(seg.idx);
+    if (polylines[seg.idx])
+      polylines[seg.idx].setStyle(show
+        ? { opacity: selectedIdx===null?0.85:seg.idx===selectedIdx?1:0.12,
+            weight:  selectedIdx===null?5:seg.idx===selectedIdx?7:3 }
+        : { opacity:0, weight:0 });
+  });
+  if (selectedIdx !== null && !visibleIdxs.has(selectedIdx)) selectedIdx = null;
+  buildList();
+}
+
+function selectSegment(idx) {
+  if (!visibleIdxs.has(idx)) return;
+  selectedIdx = idx;
+  Object.entries(polylines).forEach(([i, pl]) => {
+    const iIdx = parseInt(i);
+    if (!visibleIdxs.has(iIdx)) return;
+    pl.setStyle(iIdx===idx ? {opacity:1,weight:7} : {opacity:0.12,weight:3});
+    if (iIdx===idx) pl.bringToFront();
+  });
+  document.querySelectorAll('.seg-row').forEach(r => r.classList.remove('active'));
+  const row = document.getElementById('row-' + idx);
+  if (row) { row.classList.add('active'); row.scrollIntoView({block:'nearest',behavior:'smooth'}); }
+  if (polylines[idx]) map.fitBounds(polylines[idx].getBounds(), {padding:[40,40]});
+}
+
+function resetAll() {
+  selectedIdx = null;
+  document.getElementById('slider-dist').value = 0;
+  document.getElementById('slider-elev').value = 0;
+  document.getElementById('dist-val').textContent = '0 km';
+  document.getElementById('elev-val').textContent = '0 m';
+  visibleIdxs = new Set(SEGMENTS.map(s => s.idx));
+  Object.values(polylines).forEach(pl => pl.setStyle({opacity:0.85,weight:5}));
+  document.querySelectorAll('.seg-row').forEach(r => r.classList.remove('active'));
+  buildList();
+}
+
+function syncDistFromTime() {
+  const t = parseFloat(document.getElementById('inp-time').value);
+  const p = parseFloat(document.getElementById('inp-pace').value) || 5.5;
+  if (t && p) {
+    const dist = Math.round((t/p)*2)/2;
+    const sl   = document.getElementById('sl-dist-target');
+    sl.value   = Math.min(dist, parseFloat(sl.max));
+    document.getElementById('lbl-dist-target').textContent = sl.value + ' km';
+  }
+}
+
+function togglePanel() {
+  const body  = document.getElementById('panel-body');
+  const arrow = document.getElementById('panel-arrow');
+  const open  = body.style.display === 'block';
+  body.style.display = open ? 'none' : 'block';
+  arrow.textContent  = open ? 'v' : '^';
+}
+
+function setPickMode(mode) {
+  pickMode = mode;
+  document.getElementById('pick-hint').textContent =
+    mode === 'start' ? 'Clique pour le depart' : 'Clique pour l arrivee';
+  ['start','end'].forEach(m => {
+    const btn = document.getElementById('btn-' + m);
+    if (btn) btn.classList.toggle('active', m === mode);
+  });
+}
+
+map.on('click', function(e) {
+  if (!pickMode) return;
+  const lat = e.latlng.lat, lng = e.latlng.lng;
+  const color  = pickMode === 'start' ? '#00cc44' : '#ff3333';
+  const label  = pickMode === 'start' ? 'Depart' : 'Arrivee';
+  const marker = L.circleMarker([lat,lng], {radius:9,color:'white',weight:2,fillColor:color,fillOpacity:1})
+    .addTo(map).bindTooltip(label);
+  document.getElementById('btn-' + pickMode).textContent = label + ': ' + lat.toFixed(4) + ', ' + lng.toFixed(4);
+  document.getElementById('btn-' + pickMode).classList.add('active');
+  if (pickMode === 'start') { if(startMarker) map.removeLayer(startMarker); startMarker=marker; startPoint=[lat,lng]; }
+  else                      { if(endMarker)   map.removeLayer(endMarker);   endMarker=marker;   endPoint=[lat,lng]; }
+  document.getElementById('pick-hint').textContent = '';
+  pickMode = null;
+});
+
+function haversine(a, b) {
+  const R=6371, dLat=(b[0]-a[0])*Math.PI/180, dLng=(b[1]-a[1])*Math.PI/180;
+  const x=Math.sin(dLat/2)**2+Math.cos(a[0]*Math.PI/180)*Math.cos(b[0]*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+}
+
+function setStatus(msg, color) {
+  const el = document.getElementById('route-status');
+  el.textContent = msg;
+  el.style.color = color || '#888';
+}
+
+async function generateRoute() {
+  if (!startPoint) { alert("Place d'abord un point de depart."); return; }
+  const targetDist = parseFloat(document.getElementById('sl-dist-target').value) || 10;
+  const minElev    = parseFloat(document.getElementById('sl-elev-min').value) || 0;
+  const pace       = parseFloat(document.getElementById('inp-pace').value) || 5.5;
+  const dest       = endPoint || startPoint;
+
+  const waypoints = [startPoint];
+  if (selectedViaSegs.length > 0) {
+    selectedViaSegs.forEach(seg => {
+      waypoints.push([seg.lat, seg.lng]);
+      if (seg.lat_end && seg.lng_end) waypoints.push([seg.lat_end, seg.lng_end]);
+    });
+  } else {
+    const isBoucle = !endPoint ||
+      (Math.abs(endPoint[0]-startPoint[0])<0.0001 && Math.abs(endPoint[1]-startPoint[1])<0.0001);
+    if (isBoucle) {
+      const cands = SEGMENTS.filter(s=>s.trace&&s.ecart>0&&s.denivele_m>=minElev);
+      if (cands.length > 0)
+        waypoints.push([cands.reduce((s,seg)=>s+seg.lat,0)/cands.length, cands.reduce((s,seg)=>s+seg.lng,0)/cands.length]);
+      else
+        waypoints.push([startPoint[0]+0.005, startPoint[1]]);
+    }
+  }
+  waypoints.push(dest);
+
+  setStatus('Calcul du trace GPS (' + waypoints.length + ' points)...', '#888');
+  document.getElementById('route-results').style.display = 'none';
+  routeLayers.forEach(l=>map.removeLayer(l)); routeLayers=[]; routeGPXData=[];
+
+  try {
+    const res = await fetch('/api/route', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        coordinates: waypoints.map(p=>[p[1],p[0]]),
+        format: 'geojson'
+      })
+    });
+    const orsData = await res.json();
+    if (!res.ok) throw new Error(JSON.stringify(orsData));
+
+    const feature = orsData.features ? orsData.features[0] : null;
+    if (!feature) throw new Error('Format ORS inattendu : ' + JSON.stringify(orsData).slice(0,200));
+
+    const coords = feature.geometry.coordinates.map(c=>[c[1],c[0]]);
+    const props  = feature.properties.summary;
+    const distKm = parseFloat((props.distance/1000).toFixed(2));
+    const elevM  = Math.round(props.ascent || 0);
+    routeGPXData = [...coords];
+
+    const mainLayer = L.polyline(coords,{color:'#3355ff',weight:5,opacity:0.9,dashArray:'8,5'}).addTo(map);
+    routeLayers.push(mainLayer);
+
+    function ptSegDist(pt,a,b) {
+      const dx=b[0]-a[0],dy=b[1]-a[1];
+      if(dx===0&&dy===0) return haversine(pt,a);
+      const t=Math.max(0,Math.min(1,((pt[0]-a[0])*dx+(pt[1]-a[1])*dy)/(dx*dx+dy*dy)));
+      return haversine(pt,[a[0]+t*dx,a[1]+t*dy]);
+    }
+    function isNearRoute(seg,route,thresh) {
+      for(let i=0;i<route.length-1;i++) if(ptSegDist([seg.lat,seg.lng],route[i],route[i+1])<thresh) return true;
+      return false;
+    }
+
+    const segsOnRoute = SEGMENTS.filter(seg=>
+      seg.trace&&seg.trace.length>0&&seg.ecart>0&&
+      seg.denivele_m>=minElev&&isNearRoute(seg,coords,0.08)
+    ).sort((a,b)=>a.indic_norm-b.indic_norm);
+
+    let distBudget = Math.max(0, targetDist-distKm);
+    routeSegs = segsOnRoute.map(seg=>{
+      const passagesNeeded = seg.ecart + 1;
+      const passagesExtra  = distBudget>0&&seg.distance_km>0
+        ? Math.min(passagesNeeded-1, Math.floor(distBudget/seg.distance_km)) : 0;
+      const passagesTotaux = 1+Math.max(0,passagesExtra);
+      distBudget -= Math.max(0,passagesExtra)*seg.distance_km;
+      return {...seg, passagesTotaux, passagesNeeded};
+    });
+
+    Object.entries(polylines).forEach(([i,pl])=>{
+      const idx=parseInt(i);
+      const onRoute=routeSegs.find(s=>s.idx===idx);
+      pl.setStyle(onRoute?{opacity:1,weight:7}:{opacity:0.08,weight:2});
+      if(onRoute) pl.bringToFront();
+    });
+
+    const distExtra  = routeSegs.reduce((s,seg)=>s+(seg.passagesTotaux-1)*seg.distance_km,0);
+    const distTotale = (distKm+distExtra).toFixed(1);
+    const timeEst    = Math.round(parseFloat(distTotale)/(60/pace));
+    map.fitBounds(mainLayer.getBounds(),{padding:[40,60]});
+
+    document.getElementById('route-stats').innerHTML =
+      'Trace de base : <b>'+distKm+' km</b><br>' +
+      'Distance totale estimee : <b>'+distTotale+' km</b><br>' +
+      'Denivele : <b>'+elevM+' m</b><br>' +
+      'Temps estime : <b>'+timeEst+' min</b> a '+pace+' min/km<br>' +
+      'Segments detectes : <b>'+routeSegs.length+'</b>';
+
+    document.getElementById('route-segs').innerHTML = routeSegs.length>0
+      ? routeSegs.map(s=>{
+          const ecartRestant=Math.max(0,s.passagesNeeded-s.passagesTotaux);
+          const done=ecartRestant===0;
+          const note=done?'Local Legend atteignable !':ecartRestant+' passage'+(ecartRestant>1?'s':'')+' restants';
+          return '<div class="rp-seg-item"><span class="rp-seg-name">'+s.segment+'<small>'+note+'</small></span>' +
+                 '<span class="rp-seg-badge'+(done?' done':'')+'">x'+s.passagesTotaux+'</span></div>';
+        }).join('')
+      : '<div style="color:#aaa;font-size:10px;padding:3px 0;">Aucun segment detecte sur ce trace.</div>';
+
+    document.getElementById('route-results').style.display='block';
+    setStatus('Parcours genere !','#38a169');
+  } catch(e) {
+    setStatus('Erreur ORS : '+e.message,'#e53e3e');
+  }
+}
+
+function exportGPX() {
+  if(!routeGPXData||routeGPXData.length===0) return;
+  const trkpts=routeGPXData.map(p=>'    <trkpt lat="'+p[0].toFixed(6)+'" lon="'+p[1].toFixed(6)+'"></trkpt>').join('\n');
+  const gpx='<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Strava Local Legend" xmlns="http://www.topografix.com/GPX/1/1">\n  <trk><name>Parcours Local Legend</name><trkseg>\n'+trkpts+'\n  </trkseg></trk>\n</gpx>';
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([gpx],{type:'application/gpx+xml'}));
+  a.download='parcours_'+new Date().toISOString().slice(0,10)+'.gpx';
+  a.click();
+}
+
+function resetRoute() {
+  routeLayers.forEach(l=>map.removeLayer(l)); routeLayers=[]; routeGPXData=[]; routeSegs=[];
+  [startMarker,endMarker].forEach(m=>{if(m)map.removeLayer(m);});
+  startMarker=endMarker=null; startPoint=endPoint=null;
+  [['btn-start','Depart'],['btn-end','Arrivee = Depart (boucle)']].forEach(([id,label])=>{
+    const btn=document.getElementById(id); if(btn){btn.textContent=label;btn.classList.remove('active');}
+  });
+  selectedViaSegs.forEach(s=>{
+    const btn=document.getElementById('add-btn-'+s.idx);
+    if(btn){btn.innerHTML='+';btn.classList.remove('selected');}
+  });
+  selectedViaSegs=[];
+  document.getElementById('via-list').textContent='Aucun segment selectionne';
+  Object.values(polylines).forEach(pl=>pl.setStyle({opacity:0.85,weight:5}));
+  document.getElementById('route-results').style.display='none';
+  setStatus('');
+}
+
+loadSegments();
+</script>
+</body>
+</html>
