@@ -10,12 +10,11 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
   * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-  body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#000; overflow:hidden; height:100vh; }
+  body { font-family:-apple-system,BlinkMacSystemFont,sans-serif; background:#000; overflow:hidden; height:100vh; }
 
-  /* ── Carte plein ecran ── */
   #map { position:fixed; top:0; left:0; right:0; bottom:0; z-index:1; }
 
-  /* ── Header flottant ── */
+  /* Header */
   #header {
     position:fixed; top:0; left:0; right:0; z-index:100;
     background:rgba(255,255,255,0.95); backdrop-filter:blur(10px);
@@ -30,69 +29,69 @@
   }
   .athlete-name { font-size:14px; font-weight:600; color:#222; }
   .athlete-sub  { font-size:11px; color:#888; }
-  .logout-btn {
-    font-size:12px; color:#888; text-decoration:none;
-    padding:5px 10px; border:1px solid #ddd; border-radius:20px; background:white;
-  }
+  .logout-btn { font-size:12px; color:#888; text-decoration:none; padding:5px 10px; border:1px solid #ddd; border-radius:20px; background:white; }
 
-  /* ── Bouton parcours flottant ── */
+  /* FAB */
   #fab-route {
     position:fixed; right:16px; z-index:200;
     background:#FC4C02; color:white; border:none; border-radius:28px;
     padding:12px 18px; font-size:14px; font-weight:600; cursor:pointer;
     box-shadow:0 4px 16px rgba(252,76,2,0.4); display:flex; align-items:center; gap:6px;
-    transition:bottom 0.3s ease;
   }
   #fab-route:active { opacity:0.85; transform:scale(0.97); }
 
-  /* ── Bottom sheet ── */
+  /* Legend */
+  #legend-float {
+    position:fixed; left:12px; z-index:200;
+    background:rgba(255,255,255,0.92); backdrop-filter:blur(8px);
+    border-radius:10px; padding:8px 12px; font-size:11px; color:#555;
+    box-shadow:0 2px 8px rgba(0,0,0,0.12);
+  }
+  .legend-bar { height:5px; border-radius:3px; margin:4px 0 2px; background:linear-gradient(to right,#00ff00,#ff8800,#ff0000); width:100px; }
+  .legend-labels { display:flex; justify-content:space-between; font-size:10px; color:#aaa; width:100px; }
+
+  /* Bottom sheet */
   #bottom-sheet {
     position:fixed; left:0; right:0; bottom:0; z-index:300;
     background:white; border-radius:20px 20px 0 0;
     box-shadow:0 -4px 20px rgba(0,0,0,0.15);
-    transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);
-    max-height:85vh; display:flex; flex-direction:column;
+    display:flex; flex-direction:column;
+    /* hauteur fixe, pas de transform */
   }
+
   #sheet-handle-area {
-    padding:10px 0 4px; cursor:grab; flex-shrink:0;
-    display:flex; flex-direction:column; align-items:center; gap:6px;
+    padding:10px 0 4px; flex-shrink:0;
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    cursor:pointer; touch-action:none; /* swipe uniquement sur le handle */
   }
-  #sheet-handle-area:active { cursor:grabbing; }
   .sheet-handle { width:36px; height:4px; background:#ddd; border-radius:2px; }
 
   #sheet-tabs {
-    display:flex; gap:0; padding:0 16px; border-bottom:1px solid #f0f0f0;
-    flex-shrink:0;
+    display:flex; padding:0 16px; border-bottom:1px solid #f0f0f0; flex-shrink:0;
   }
   .sheet-tab {
     flex:1; padding:8px 0; font-size:13px; font-weight:500; color:#888;
     border:none; background:none; cursor:pointer; border-bottom:2px solid transparent;
-    transition:all 0.15s;
   }
   .sheet-tab.active { color:#FC4C02; border-bottom-color:#FC4C02; }
 
-  #sheet-content { flex:1; overflow:hidden; }
-  .tab-pane { display:none; height:100%; overflow-y:auto; }
+  /* Contenu scrollable */
+  #sheet-content { flex:1; overflow:hidden; display:flex; flex-direction:column; }
+  .tab-pane { display:none; flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; }
   .tab-pane.active { display:flex; flex-direction:column; }
 
-  /* ── Filtres ── */
-  #filters-pane { padding:12px 16px; }
-  .filter-row { margin-bottom:12px; }
+  /* Filtres */
+  #filters-pane { padding:14px 16px; }
+  .filter-row { margin-bottom:14px; }
   .filter-label { display:flex; justify-content:space-between; font-size:12px; color:#555; margin-bottom:4px; }
   .filter-label b { color:#222; }
   input[type=range] { width:100%; accent-color:#FC4C02; }
-  #reset-btn {
-    width:100%; padding:10px; border:none; border-radius:10px;
-    background:#f0f0f0; color:#555; font-size:13px; cursor:pointer; margin-top:4px;
-  }
+  #reset-btn { width:100%; padding:11px; border:none; border-radius:10px; background:#f0f0f0; color:#555; font-size:13px; cursor:pointer; margin-top:4px; }
 
-  /* ── Liste segments ── */
-  #segments-pane { overflow-y:auto; }
-  .seg-count { font-size:11px; color:#888; padding:8px 16px 4px; }
-  .seg-row {
-    display:flex; align-items:center; gap:10px;
-    padding:10px 16px; border-bottom:1px solid #f5f5f5; cursor:pointer;
-  }
+  /* Liste segments */
+  .seg-count { font-size:11px; color:#888; padding:8px 16px 4px; flex-shrink:0; }
+  #segment-list { flex:1; }
+  .seg-row { display:flex; align-items:center; gap:10px; padding:11px 16px; border-bottom:1px solid #f5f5f5; cursor:pointer; }
   .seg-row:active { background:#f9f9f9; }
   .seg-row.active { background:#fff8f5; border-left:3px solid #FC4C02; padding-left:13px; }
   .seg-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
@@ -102,39 +101,39 @@
   .seg-right { display:flex; align-items:center; gap:8px; flex-shrink:0; }
   .seg-indic { font-size:11px; font-weight:600; padding:2px 7px; border-radius:99px; background:#f0f0f0; color:#444; }
   .seg-add-btn {
-    width:28px; height:28px; border-radius:50%;
+    width:30px; height:30px; border-radius:50%;
     border:2px solid #FC4C02; background:#fff; color:#FC4C02;
-    font-size:16px; font-weight:700; cursor:pointer;
-    display:flex; align-items:center; justify-content:center; padding:0;
+    font-size:17px; font-weight:700; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; padding:0; flex-shrink:0;
   }
   .seg-add-btn.selected { background:#FC4C02; color:white; }
 
-  /* ── Panneau parcours (bottom sheet overlay) ── */
+  /* Boutons de hauteur du sheet */
+  #sheet-size-btns {
+    display:flex; gap:6px; padding:0 16px 8px; flex-shrink:0;
+  }
+  .size-btn {
+    flex:1; padding:6px; border:1px solid #eee; border-radius:8px;
+    background:#fafafa; color:#888; font-size:11px; cursor:pointer;
+  }
+  .size-btn.active { border-color:#FC4C02; color:#FC4C02; background:#fff8f5; }
+
+  /* Route sheet */
   #route-sheet {
     position:fixed; left:0; right:0; bottom:0; z-index:400;
     background:white; border-radius:20px 20px 0 0;
     box-shadow:0 -4px 20px rgba(0,0,0,0.2);
     transform:translateY(100%);
     transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);
-    max-height:90vh; display:flex; flex-direction:column;
+    max-height:92vh; display:flex; flex-direction:column;
   }
   #route-sheet.open { transform:translateY(0); }
-  #route-sheet-handle {
-    padding:10px 0 4px; display:flex; flex-direction:column; align-items:center; gap:6px;
-    flex-shrink:0; cursor:pointer;
-  }
-  #route-sheet-content { flex:1; overflow-y:auto; padding:0 16px 20px; }
-  .rp-title {
-    font-size:16px; font-weight:600; color:#222; margin-bottom:14px;
-    display:flex; align-items:center; justify-content:space-between;
-  }
-  .rp-close { font-size:22px; color:#aaa; cursor:pointer; line-height:1; }
+  #route-sheet-handle { padding:10px 0 4px; display:flex; flex-direction:column; align-items:center; gap:4px; flex-shrink:0; cursor:pointer; }
+  #route-sheet-content { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:0 16px 30px; }
+  .rp-title { font-size:16px; font-weight:600; color:#222; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; }
+  .rp-close { font-size:24px; color:#aaa; cursor:pointer; line-height:1; }
   .rp-section { font-size:11px; font-weight:600; color:#888; text-transform:uppercase; letter-spacing:0.05em; margin:14px 0 8px; }
-  .rp-btn {
-    width:100%; padding:10px 12px; border-radius:10px; font-size:13px; cursor:pointer;
-    font-weight:500; border:1.5px solid #ddd; background:#fff; color:#555;
-    text-align:left; margin-bottom:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  }
+  .rp-btn { width:100%; padding:11px 12px; border-radius:10px; font-size:13px; cursor:pointer; font-weight:500; border:1.5px solid #ddd; background:#fff; color:#555; text-align:left; margin-bottom:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .rp-btn.active { border-color:#FC4C02; color:#FC4C02; background:#fff8f5; }
   .rp-hint { font-size:11px; color:#FC4C02; text-align:center; min-height:16px; margin-bottom:6px; }
   .rp-row { margin-bottom:12px; }
@@ -143,19 +142,13 @@
   .via-list { font-size:12px; color:#FC4C02; margin-bottom:4px; min-height:18px; }
   .via-hint { font-size:11px; color:#aaa; margin-bottom:10px; }
   .rp-actions { display:flex; gap:8px; margin-top:8px; }
-  .rp-generate {
-    flex:1; padding:13px; border-radius:12px; border:none;
-    background:#FC4C02; color:white; font-size:15px; font-weight:600; cursor:pointer;
-  }
+  .rp-generate { flex:1; padding:13px; border-radius:12px; border:none; background:#FC4C02; color:white; font-size:15px; font-weight:600; cursor:pointer; }
   .rp-generate:active { opacity:0.85; }
   .rp-clear { padding:13px 16px; border-radius:12px; border:1.5px solid #ddd; background:#fff; color:#555; font-size:14px; cursor:pointer; }
   .rp-status { font-size:12px; text-align:center; margin-top:8px; min-height:16px; color:#888; }
   .rp-results { display:none; margin-top:12px; padding-top:12px; border-top:1px solid #eee; }
   .rp-stats { font-size:13px; color:#555; line-height:2; margin-bottom:10px; }
-  .rp-export {
-    width:100%; padding:12px; border-radius:12px; border:1.5px solid #FC4C02;
-    background:#fff; color:#FC4C02; font-size:14px; font-weight:500; cursor:pointer;
-  }
+  .rp-export { width:100%; padding:12px; border-radius:12px; border:1.5px solid #FC4C02; background:#fff; color:#FC4C02; font-size:14px; font-weight:500; cursor:pointer; }
   .rp-segs-list { margin-bottom:10px; }
   .rp-seg-item { display:flex; align-items:flex-start; justify-content:space-between; padding:6px 0; border-bottom:1px solid #f5f5f5; gap:8px; }
   .rp-seg-name { flex:1; font-size:12px; color:#333; line-height:1.4; }
@@ -163,7 +156,7 @@
   .rp-seg-badge { flex-shrink:0; font-size:10px; font-weight:600; padding:2px 7px; border-radius:99px; background:#FC4C0218; color:#FC4C02; }
   .rp-seg-badge.done { background:#38a16918; color:#38a169; }
 
-  /* ── Loading ── */
+  /* Loading */
   #loading {
     position:fixed; top:0; left:0; right:0; bottom:0; z-index:500;
     background:rgba(255,255,255,0.96); display:flex; flex-direction:column;
@@ -173,23 +166,12 @@
   @keyframes spin { to { transform:rotate(360deg); } }
   .loading-text { font-size:15px; color:#444; font-weight:500; }
   .loading-sub  { font-size:12px; color:#aaa; margin-top:6px; }
-
-  /* ── Legend ── */
-  #legend-float {
-    position:fixed; left:12px; z-index:200;
-    background:rgba(255,255,255,0.92); backdrop-filter:blur(8px);
-    border-radius:10px; padding:8px 12px; font-size:11px; color:#555;
-    box-shadow:0 2px 8px rgba(0,0,0,0.12); transition:bottom 0.3s ease;
-  }
-  .legend-bar { height:5px; border-radius:3px; margin:4px 0 2px; background:linear-gradient(to right,#00ff00,#ff8800,#ff0000); width:100px; }
-  .legend-labels { display:flex; justify-content:space-between; font-size:10px; color:#aaa; width:100px; }
 </style>
 </head>
 <body>
 
 <div id="map"></div>
 
-<!-- Header -->
 <div id="header">
   <div class="athlete-info">
     {% if athlete.profile and 'avatar/athlete/large' not in athlete.profile %}
@@ -205,34 +187,40 @@
   <a class="logout-btn" href="/logout">Deconnexion</a>
 </div>
 
-<!-- Loading -->
 <div id="loading">
   <div class="spinner"></div>
   <div class="loading-text">Analyse de tes activites...</div>
   <div class="loading-sub">Recuperation des segments et local legends</div>
 </div>
 
-<!-- Bouton parcours flottant -->
-<button id="fab-route" onclick="openRouteSheet()" style="bottom:220px;">
+<button id="fab-route" onclick="openRouteSheet()" style="bottom:230px;">
   🗺️ Creer un parcours
 </button>
 
-<!-- Legende flottante -->
-<div id="legend-float" style="bottom:220px;">
+<div id="legend-float" style="bottom:230px;">
   <b style="font-size:11px;">Priorite LL</b>
   <div class="legend-bar"></div>
   <div class="legend-labels"><span>Facile</span><span>Difficile</span></div>
 </div>
 
-<!-- Bottom sheet principal -->
-<div id="bottom-sheet">
-  <div id="sheet-handle-area" id="drag-handle">
+<!-- Bottom sheet -->
+<div id="bottom-sheet" style="height:220px;">
+  <div id="sheet-handle-area">
     <div class="sheet-handle"></div>
   </div>
+
+  <!-- Boutons taille -->
+  <div id="sheet-size-btns">
+    <button class="size-btn active" id="sz-sm" onclick="setSize('sm')">Mini</button>
+    <button class="size-btn" id="sz-md" onclick="setSize('md')">Moitie</button>
+    <button class="size-btn" id="sz-lg" onclick="setSize('lg')">Plein</button>
+  </div>
+
   <div id="sheet-tabs">
     <button class="sheet-tab active" onclick="switchTab('segments')">Segments</button>
     <button class="sheet-tab" onclick="switchTab('filters')">Filtres</button>
   </div>
+
   <div id="sheet-content">
     <div class="tab-pane active" id="tab-segments">
       <div class="seg-count" id="seg-count"></div>
@@ -254,7 +242,7 @@
   </div>
 </div>
 
-<!-- Panneau parcours -->
+<!-- Route sheet -->
 <div id="route-sheet">
   <div id="route-sheet-handle" onclick="closeRouteSheet()">
     <div class="sheet-handle"></div>
@@ -326,77 +314,72 @@ let startMarker = null, endMarker = null;
 let routeLayers = [], routeGPXData = [], routeSegs = [];
 let selectedViaSegs = [];
 
-// ── Init carte ──
-map = L.map('map', { zoomControl: false }).setView([45.5048, -73.5877], 14);
+const SIZES = { sm: 220, md: Math.round(window.innerHeight*0.5), lg: Math.round(window.innerHeight*0.85) };
+let currentSize = 'sm';
+
+map = L.map('map', { zoomControl:false }).setView([45.5048, -73.5877], 14);
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-  attribution: 'OpenStreetMap / CartoDB', maxZoom: 19
+  attribution:'OpenStreetMap / CartoDB', maxZoom:19
 }).addTo(map);
+L.control.zoom({ position:'topright' }).addTo(map);
 
-// Zoom control en haut a droite
-L.control.zoom({ position: 'topright' }).addTo(map);
-
-// ── Bottom sheet swipe ──
-const sheet      = document.getElementById('bottom-sheet');
-const SNAP_PEEK  = 200;  // hauteur minimale visible
-const SNAP_MID   = Math.round(window.innerHeight * 0.5);
-const SNAP_FULL  = Math.round(window.innerHeight * 0.85);
-
-let sheetHeight  = SNAP_PEEK;
-let dragStartY   = 0;
-let dragStartH   = 0;
-let isDragging   = false;
-
-function setSheetHeight(h, animate = true) {
-  sheetHeight = Math.max(80, Math.min(SNAP_FULL, h));
-  sheet.style.transition = animate ? 'transform 0.3s cubic-bezier(0.4,0,0.2,1)' : 'none';
-  sheet.style.transform  = `translateY(calc(100% - ${sheetHeight}px))`;
-  // Ajuste les boutons flottants
-  const floatBottom = sheetHeight + 12;
+function setSize(sz) {
+  currentSize = sz;
+  const h = SIZES[sz];
+  const sheet = document.getElementById('bottom-sheet');
+  sheet.style.transition = 'height 0.3s cubic-bezier(0.4,0,0.2,1)';
+  sheet.style.height     = h + 'px';
+  ['sm','md','lg'].forEach(s => {
+    document.getElementById('sz-' + s).classList.toggle('active', s === sz);
+  });
+  const floatBottom = h + 12;
   document.getElementById('fab-route').style.bottom    = floatBottom + 'px';
   document.getElementById('legend-float').style.bottom = floatBottom + 'px';
 }
 
-function snapSheet(targetH) {
-  const snaps = [SNAP_PEEK, SNAP_MID, SNAP_FULL];
-  const closest = snaps.reduce((a, b) => Math.abs(b - targetH) < Math.abs(a - targetH) ? b : a);
-  setSheetHeight(closest);
-}
-
+// Swipe sur le handle uniquement
 const handle = document.getElementById('sheet-handle-area');
+let dragStartY = 0, dragStartH = 0, isDragging = false;
+
 handle.addEventListener('touchstart', e => {
-  isDragging  = true;
-  dragStartY  = e.touches[0].clientY;
-  dragStartH  = sheetHeight;
-  sheet.style.transition = 'none';
-}, { passive: true });
+  isDragging = true;
+  dragStartY = e.touches[0].clientY;
+  dragStartH = SIZES[currentSize];
+  document.getElementById('bottom-sheet').style.transition = 'none';
+}, { passive:true });
 
 handle.addEventListener('touchmove', e => {
   if (!isDragging) return;
-  const dy = dragStartY - e.touches[0].clientY;
-  setSheetHeight(dragStartH + dy, false);
-}, { passive: true });
+  const dy  = dragStartY - e.touches[0].clientY;
+  const newH = Math.max(100, Math.min(SIZES.lg, dragStartH + dy));
+  document.getElementById('bottom-sheet').style.height = newH + 'px';
+  document.getElementById('fab-route').style.bottom    = (newH + 12) + 'px';
+  document.getElementById('legend-float').style.bottom = (newH + 12) + 'px';
+}, { passive:true });
 
-handle.addEventListener('touchend', () => {
+handle.addEventListener('touchend', e => {
   isDragging = false;
-  snapSheet(sheetHeight);
+  const currentH = parseInt(document.getElementById('bottom-sheet').style.height);
+  // Snap vers la taille la plus proche
+  const sizes = Object.entries(SIZES);
+  const closest = sizes.reduce((a, b) =>
+    Math.abs(b[1] - currentH) < Math.abs(a[1] - currentH) ? b : a
+  );
+  setSize(closest[0]);
 });
 
-// Init
-setSheetHeight(SNAP_PEEK, false);
-
-// ── Tabs ──
 function switchTab(name) {
   document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.sheet-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
   document.querySelectorAll('.sheet-tab').forEach(t => {
-    if (t.textContent.toLowerCase().includes(name === 'segments' ? 'segment' : 'filtre'))
+    if ((name === 'segments' && t.textContent.includes('Segment')) ||
+        (name === 'filters'  && t.textContent.includes('Filtre')))
       t.classList.add('active');
   });
-  if (sheetHeight < SNAP_MID) setSheetHeight(SNAP_MID);
+  if (currentSize === 'sm') setSize('md');
 }
 
-// ── Charge les segments ──
 async function loadSegments() {
   try {
     const res  = await fetch('/api/segments');
@@ -412,8 +395,8 @@ async function loadSegments() {
 
     SEGMENTS.forEach(seg => {
       if (!seg.trace || seg.trace.length === 0) return;
-      const pl = L.polyline(seg.trace, { color: seg.color, weight: 4, opacity: 0.85 }).addTo(map);
-      pl.bindPopup(buildPopup(seg), { maxWidth: 280 });
+      const pl = L.polyline(seg.trace, { color:seg.color, weight:4, opacity:0.85 }).addTo(map);
+      pl.bindPopup(buildPopup(seg), { maxWidth:280 });
       pl.on('click', () => selectSegment(seg.idx));
       polylines[seg.idx] = pl;
       L.circleMarker(seg.trace[0], { radius:5, color:'white', weight:2, fillColor:seg.color, fillOpacity:1 })
@@ -430,7 +413,6 @@ async function loadSegments() {
     document.getElementById('header-sub').textContent = SEGMENTS.length + ' segments - 7 derniers jours';
     document.getElementById('loading').style.display  = 'none';
     buildList();
-
   } catch(e) {
     document.querySelector('.loading-text').textContent = 'Erreur : ' + e.message;
     document.querySelector('.loading-sub').textContent  = 'Recharge la page.';
@@ -445,10 +427,10 @@ function buildPopup(seg) {
   const elevTotale    = (effortsAFaire * seg.denivele_m).toFixed(0);
   const diff          = seg.indic_norm < 0.33 ? 'Prioritaire' : seg.indic_norm < 0.66 ? 'Moyen' : 'Difficile';
   const llBlock = effortsAFaire > 0
-    ? '<hr style="border:none;border-top:1px solid #eee;margin:8px 0;">' +
+    ? '<hr style="border:none;border-top:1px solid #eee;margin:7px 0;">' +
       '<b>Pour devenir Local Legend :</b><br>' +
       'Efforts : <b>' + effortsAFaire + '</b> · Dist : <b>' + distTotale + ' m</b> · D+ : <b>' + elevTotale + ' m</b>'
-    : '<hr style="border:none;border-top:1px solid #eee;margin:8px 0;">' +
+    : '<hr style="border:none;border-top:1px solid #eee;margin:7px 0;">' +
       '<span style="color:#38a169;font-weight:600;">Tu es deja Local Legend !</span>';
   return '<div style="font-family:-apple-system,sans-serif;font-size:13px;min-width:200px;">' +
     '<b style="font-size:14px;color:#FC4C02;">' + seg.segment + '</b><br><br>' +
@@ -486,10 +468,10 @@ function buildList() {
       '<div class="seg-right">' +
         '<div class="seg-indic">' + seg.indic_norm.toFixed(2) + '</div>' +
         '<button class="seg-add-btn' + (isSelected ? ' selected' : '') + '" id="add-btn-' + seg.idx + '"' +
-          ' onclick="toggleVia(' + seg.idx + ', event)">'+
+          ' onclick="toggleVia(' + seg.idx + ', event)">' +
           (isSelected ? '&#10003;' : '+') + '</button>' +
       '</div>';
-    row.onclick = () => { selectSegment(seg.idx); if(sheetHeight > SNAP_PEEK) setSheetHeight(SNAP_PEEK); };
+    row.onclick = () => selectSegment(seg.idx);
     list.appendChild(row);
   });
   document.getElementById('seg-count').textContent =
@@ -528,8 +510,8 @@ function applyFilters() {
     if (show) visibleIdxs.add(seg.idx);
     if (polylines[seg.idx])
       polylines[seg.idx].setStyle(show
-        ? { opacity: selectedIdx===null?0.85:seg.idx===selectedIdx?1:0.12,
-            weight:  selectedIdx===null?4:seg.idx===selectedIdx?7:2 }
+        ? { opacity:selectedIdx===null?0.85:seg.idx===selectedIdx?1:0.12,
+            weight: selectedIdx===null?4:seg.idx===selectedIdx?7:2 }
         : { opacity:0, weight:0 });
   });
   if (selectedIdx !== null && !visibleIdxs.has(selectedIdx)) selectedIdx = null;
@@ -549,6 +531,7 @@ function selectSegment(idx) {
   const row = document.getElementById('row-' + idx);
   if (row) { row.classList.add('active'); row.scrollIntoView({block:'nearest',behavior:'smooth'}); }
   if (polylines[idx]) map.fitBounds(polylines[idx].getBounds(), {padding:[80,80]});
+  setSize('sm');
 }
 
 function resetAll() {
@@ -563,14 +546,8 @@ function resetAll() {
   buildList();
 }
 
-// ── Route sheet ──
-function openRouteSheet() {
-  document.getElementById('route-sheet').classList.add('open');
-  setSheetHeight(SNAP_PEEK);
-}
-function closeRouteSheet() {
-  document.getElementById('route-sheet').classList.remove('open');
-}
+function openRouteSheet()  { document.getElementById('route-sheet').classList.add('open'); }
+function closeRouteSheet() { document.getElementById('route-sheet').classList.remove('open'); }
 
 function syncDistFromTime() {
   const t = parseFloat(document.getElementById('inp-time').value);
@@ -592,7 +569,6 @@ function setPickMode(mode) {
     if (btn) btn.classList.toggle('active', m === mode);
   });
   closeRouteSheet();
-  setTimeout(() => document.getElementById('route-sheet').classList.add('open'), 100);
 }
 
 map.on('click', function(e) {
@@ -608,10 +584,11 @@ map.on('click', function(e) {
   else                      { if(endMarker)   map.removeLayer(endMarker);   endMarker=marker;   endPoint=[lat,lng]; }
   document.getElementById('pick-hint').textContent = '';
   pickMode = null;
+  openRouteSheet();
 });
 
-function haversine(a, b) {
-  const R=6371, dLat=(b[0]-a[0])*Math.PI/180, dLng=(b[1]-a[1])*Math.PI/180;
+function haversine(a,b) {
+  const R=6371,dLat=(b[0]-a[0])*Math.PI/180,dLng=(b[1]-a[1])*Math.PI/180;
   const x=Math.sin(dLat/2)**2+Math.cos(a[0]*Math.PI/180)*Math.cos(b[0]*Math.PI/180)*Math.sin(dLng/2)**2;
   return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
 }
@@ -654,7 +631,7 @@ async function generateRoute() {
   try {
     const res = await fetch('/api/route', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ coordinates: waypoints.map(p=>[p[1],p[0]]), format:'geojson' })
+      body: JSON.stringify({ coordinates:waypoints.map(p=>[p[1],p[0]]), format:'geojson' })
     });
     const orsData = await res.json();
     if (!res.ok) throw new Error(JSON.stringify(orsData));
@@ -725,9 +702,8 @@ async function generateRoute() {
         }).join('')
       : '<div style="color:#aaa;font-size:12px;padding:4px 0;">Aucun segment detecte sur ce trace.</div>';
 
-    document.getElementById('route-results').style.display='block';
+    document.getElementById('route-results').style.display = 'block';
     setStatus('Parcours genere !','#38a169');
-
   } catch(e) {
     setStatus('Erreur ORS : '+e.message,'#e53e3e');
   }
