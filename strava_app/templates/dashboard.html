@@ -14,7 +14,6 @@
 
   #map { position:fixed; top:0; left:0; right:0; bottom:0; z-index:1; }
 
-  /* Header */
   #header {
     position:fixed; top:0; left:0; right:0; z-index:100;
     background:rgba(255,255,255,0.95); backdrop-filter:blur(10px);
@@ -31,7 +30,6 @@
   .athlete-sub  { font-size:11px; color:#888; }
   .logout-btn { font-size:12px; color:#888; text-decoration:none; padding:5px 10px; border:1px solid #ddd; border-radius:20px; background:white; }
 
-  /* FAB */
   #fab-route {
     position:fixed; right:16px; z-index:200;
     background:#FC4C02; color:white; border:none; border-radius:28px;
@@ -40,7 +38,6 @@
   }
   #fab-route:active { opacity:0.85; transform:scale(0.97); }
 
-  /* Legend */
   #legend-float {
     position:fixed; left:12px; z-index:200;
     background:rgba(255,255,255,0.92); backdrop-filter:blur(8px);
@@ -50,37 +47,28 @@
   .legend-bar { height:5px; border-radius:3px; margin:4px 0 2px; background:linear-gradient(to right,#00ff00,#ff8800,#ff0000); width:100px; }
   .legend-labels { display:flex; justify-content:space-between; font-size:10px; color:#aaa; width:100px; }
 
-  /* Bottom sheet */
   #bottom-sheet {
     position:fixed; left:0; right:0; bottom:0; z-index:300;
     background:white; border-radius:20px 20px 0 0;
     box-shadow:0 -4px 20px rgba(0,0,0,0.15);
     display:flex; flex-direction:column;
-    /* hauteur fixe, pas de transform */
   }
-
   #sheet-handle-area {
     padding:10px 0 4px; flex-shrink:0;
     display:flex; flex-direction:column; align-items:center; gap:4px;
-    cursor:pointer; touch-action:none; /* swipe uniquement sur le handle */
+    cursor:pointer; touch-action:none;
   }
   .sheet-handle { width:36px; height:4px; background:#ddd; border-radius:2px; }
-
-  #sheet-tabs {
-    display:flex; padding:0 16px; border-bottom:1px solid #f0f0f0; flex-shrink:0;
-  }
+  #sheet-tabs { display:flex; padding:0 16px; border-bottom:1px solid #f0f0f0; flex-shrink:0; }
   .sheet-tab {
     flex:1; padding:8px 0; font-size:13px; font-weight:500; color:#888;
     border:none; background:none; cursor:pointer; border-bottom:2px solid transparent;
   }
   .sheet-tab.active { color:#FC4C02; border-bottom-color:#FC4C02; }
-
-  /* Contenu scrollable */
   #sheet-content { flex:1; overflow:hidden; display:flex; flex-direction:column; }
   .tab-pane { display:none; flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; }
   .tab-pane.active { display:flex; flex-direction:column; }
 
-  /* Filtres */
   #filters-pane { padding:14px 16px; }
   .filter-row { margin-bottom:14px; }
   .filter-label { display:flex; justify-content:space-between; font-size:12px; color:#555; margin-bottom:4px; }
@@ -88,7 +76,6 @@
   input[type=range] { width:100%; accent-color:#FC4C02; }
   #reset-btn { width:100%; padding:11px; border:none; border-radius:10px; background:#f0f0f0; color:#555; font-size:13px; cursor:pointer; margin-top:4px; }
 
-  /* Liste segments */
   .seg-count { font-size:11px; color:#888; padding:8px 16px 4px; flex-shrink:0; }
   #segment-list { flex:1; }
   .seg-row { display:flex; align-items:center; gap:10px; padding:11px 16px; border-bottom:1px solid #f5f5f5; cursor:pointer; }
@@ -108,17 +95,6 @@
   }
   .seg-add-btn.selected { background:#FC4C02; color:white; }
 
-  /* Boutons de hauteur du sheet */
-  #sheet-size-btns {
-    display:flex; gap:6px; padding:0 16px 8px; flex-shrink:0;
-  }
-  .size-btn {
-    flex:1; padding:6px; border:1px solid #eee; border-radius:8px;
-    background:#fafafa; color:#888; font-size:11px; cursor:pointer;
-  }
-  .size-btn.active { border-color:#FC4C02; color:#FC4C02; background:#fff8f5; }
-
-  /* Route sheet */
   #route-sheet {
     position:fixed; left:0; right:0; bottom:0; z-index:400;
     background:white; border-radius:20px 20px 0 0;
@@ -156,7 +132,6 @@
   .rp-seg-badge { flex-shrink:0; font-size:10px; font-weight:600; padding:2px 7px; border-radius:99px; background:#FC4C0218; color:#FC4C02; }
   .rp-seg-badge.done { background:#38a16918; color:#38a169; }
 
-  /* Loading */
   #loading {
     position:fixed; top:0; left:0; right:0; bottom:0; z-index:500;
     background:rgba(255,255,255,0.96); display:flex; flex-direction:column;
@@ -203,24 +178,14 @@
   <div class="legend-labels"><span>Facile</span><span>Difficile</span></div>
 </div>
 
-<!-- Bottom sheet -->
 <div id="bottom-sheet" style="height:220px;">
   <div id="sheet-handle-area">
     <div class="sheet-handle"></div>
   </div>
-
-  <!-- Boutons taille -->
-  <div id="sheet-size-btns">
-    <button class="size-btn active" id="sz-sm" onclick="setSize('sm')">Mini</button>
-    <button class="size-btn" id="sz-md" onclick="setSize('md')">Moitie</button>
-    <button class="size-btn" id="sz-lg" onclick="setSize('lg')">Plein</button>
-  </div>
-
   <div id="sheet-tabs">
     <button class="sheet-tab active" onclick="switchTab('segments')">Segments</button>
     <button class="sheet-tab" onclick="switchTab('filters')">Filtres</button>
   </div>
-
   <div id="sheet-content">
     <div class="tab-pane active" id="tab-segments">
       <div class="seg-count" id="seg-count"></div>
@@ -242,7 +207,6 @@
   </div>
 </div>
 
-<!-- Route sheet -->
 <div id="route-sheet">
   <div id="route-sheet-handle" onclick="closeRouteSheet()">
     <div class="sheet-handle"></div>
@@ -252,16 +216,13 @@
       🗺️ Creer un parcours
       <span class="rp-close" onclick="closeRouteSheet()">×</span>
     </div>
-
     <div class="rp-section">Points</div>
     <button class="rp-btn" id="btn-start" onclick="setPickMode('start')">📍 Depart</button>
     <button class="rp-btn" id="btn-end"   onclick="setPickMode('end')">🔴 Arrivee = Depart (boucle)</button>
     <div class="rp-hint" id="pick-hint"></div>
-
     <div class="rp-section">Segments a inclure</div>
     <div class="via-list" id="via-list">Aucun segment selectionne</div>
     <div class="via-hint">Clique sur + dans la liste des segments</div>
-
     <div class="rp-section">Contraintes</div>
     <div class="rp-row">
       <div class="rp-lbl">Distance cible <b id="lbl-dist-target">10 km</b></div>
@@ -288,13 +249,11 @@
         <span style="font-size:12px;color:#555;">min/km</span>
       </div>
     </div>
-
     <div class="rp-actions">
       <button class="rp-generate" onclick="generateRoute()">Generer</button>
       <button class="rp-clear" onclick="resetRoute()">Effacer</button>
     </div>
     <div class="rp-status" id="route-status"></div>
-
     <div class="rp-results" id="route-results">
       <div class="rp-section">Parcours genere</div>
       <div class="rp-stats" id="route-stats"></div>
@@ -314,7 +273,7 @@ let startMarker = null, endMarker = null;
 let routeLayers = [], routeGPXData = [], routeSegs = [];
 let selectedViaSegs = [];
 
-const SIZES = { sm: 220, md: Math.round(window.innerHeight*0.5), lg: Math.round(window.innerHeight*0.85) };
+const SIZES = { sm:220, md:Math.round(window.innerHeight*0.5), lg:Math.round(window.innerHeight*0.85) };
 let currentSize = 'sm';
 
 map = L.map('map', { zoomControl:false }).setView([45.5048, -73.5877], 14);
@@ -325,46 +284,37 @@ L.control.zoom({ position:'topright' }).addTo(map);
 
 function setSize(sz) {
   currentSize = sz;
-  const h = SIZES[sz];
+  const h     = SIZES[sz];
   const sheet = document.getElementById('bottom-sheet');
   sheet.style.transition = 'height 0.3s cubic-bezier(0.4,0,0.2,1)';
   sheet.style.height     = h + 'px';
-  ['sm','md','lg'].forEach(s => {
-    document.getElementById('sz-' + s).classList.toggle('active', s === sz);
-  });
   const floatBottom = h + 12;
   document.getElementById('fab-route').style.bottom    = floatBottom + 'px';
   document.getElementById('legend-float').style.bottom = floatBottom + 'px';
 }
 
-// Swipe sur le handle uniquement
+// Swipe sur le handle
 const handle = document.getElementById('sheet-handle-area');
 let dragStartY = 0, dragStartH = 0, isDragging = false;
-
 handle.addEventListener('touchstart', e => {
   isDragging = true;
   dragStartY = e.touches[0].clientY;
   dragStartH = SIZES[currentSize];
   document.getElementById('bottom-sheet').style.transition = 'none';
 }, { passive:true });
-
 handle.addEventListener('touchmove', e => {
   if (!isDragging) return;
-  const dy  = dragStartY - e.touches[0].clientY;
+  const dy   = dragStartY - e.touches[0].clientY;
   const newH = Math.max(100, Math.min(SIZES.lg, dragStartH + dy));
-  document.getElementById('bottom-sheet').style.height = newH + 'px';
-  document.getElementById('fab-route').style.bottom    = (newH + 12) + 'px';
-  document.getElementById('legend-float').style.bottom = (newH + 12) + 'px';
+  document.getElementById('bottom-sheet').style.height     = newH + 'px';
+  document.getElementById('fab-route').style.bottom        = (newH+12) + 'px';
+  document.getElementById('legend-float').style.bottom     = (newH+12) + 'px';
 }, { passive:true });
-
-handle.addEventListener('touchend', e => {
+handle.addEventListener('touchend', () => {
   isDragging = false;
   const currentH = parseInt(document.getElementById('bottom-sheet').style.height);
-  // Snap vers la taille la plus proche
-  const sizes = Object.entries(SIZES);
-  const closest = sizes.reduce((a, b) =>
-    Math.abs(b[1] - currentH) < Math.abs(a[1] - currentH) ? b : a
-  );
+  const closest  = Object.entries(SIZES).reduce((a,b) =>
+    Math.abs(b[1]-currentH) < Math.abs(a[1]-currentH) ? b : a);
   setSize(closest[0]);
 });
 
@@ -373,8 +323,8 @@ function switchTab(name) {
   document.querySelectorAll('.sheet-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
   document.querySelectorAll('.sheet-tab').forEach(t => {
-    if ((name === 'segments' && t.textContent.includes('Segment')) ||
-        (name === 'filters'  && t.textContent.includes('Filtre')))
+    if ((name==='segments' && t.textContent.includes('Segment')) ||
+        (name==='filters'  && t.textContent.includes('Filtre')))
       t.classList.add('active');
   });
   if (currentSize === 'sm') setSize('md');
@@ -387,12 +337,10 @@ async function loadSegments() {
     if (data.error) throw new Error(data.error);
     SEGMENTS    = data.segments;
     visibleIdxs = new Set(SEGMENTS.map(s => s.idx));
-
     const distMax = Math.max(...SEGMENTS.map(s => s.distance_km), 1);
     const elevMax = Math.max(...SEGMENTS.map(s => s.denivele_m), 10);
     document.getElementById('slider-dist').max = distMax.toFixed(1);
     document.getElementById('slider-elev').max = elevMax.toFixed(0);
-
     SEGMENTS.forEach(seg => {
       if (!seg.trace || seg.trace.length === 0) return;
       const pl = L.polyline(seg.trace, { color:seg.color, weight:4, opacity:0.85 }).addTo(map);
@@ -402,14 +350,12 @@ async function loadSegments() {
       L.circleMarker(seg.trace[0], { radius:5, color:'white', weight:2, fillColor:seg.color, fillOpacity:1 })
         .addTo(map).on('click', () => selectSegment(seg.idx));
     });
-
     if (SEGMENTS.length > 0) {
       const lats = SEGMENTS.filter(s => s.lat).map(s => s.lat);
       const lngs = SEGMENTS.filter(s => s.lng).map(s => s.lng);
       if (lats.length > 0)
-        map.fitBounds([[Math.min(...lats), Math.min(...lngs)],[Math.max(...lats), Math.max(...lngs)]], { padding:[60,60] });
+        map.fitBounds([[Math.min(...lats),Math.min(...lngs)],[Math.max(...lats),Math.max(...lngs)]], { padding:[60,60] });
     }
-
     document.getElementById('header-sub').textContent = SEGMENTS.length + ' segments - 7 derniers jours';
     document.getElementById('loading').style.display  = 'none';
     buildList();
@@ -425,22 +371,25 @@ function buildPopup(seg) {
   const effortsAFaire = seg.ecart > 0 ? seg.ecart + 1 : seg.ecart === 0 ? 1 : 0;
   const distTotale    = (effortsAFaire * seg.distance_km * 1000).toFixed(0);
   const elevTotale    = (effortsAFaire * seg.denivele_m).toFixed(0);
-  const diff          = seg.indic_norm < 0.33 ? 'Prioritaire' : seg.indic_norm < 0.66 ? 'Moyen' : 'Difficile';
+  const diff          = seg.indic_norm < 0.33 ? '🟢 Prioritaire' : seg.indic_norm < 0.66 ? '🟠 Moyen' : '🔴 Difficile';
   const llBlock = effortsAFaire > 0
-    ? '<hr style="border:none;border-top:1px solid #eee;margin:7px 0;">' +
-      '<b>Pour devenir Local Legend :</b><br>' +
-      'Efforts : <b>' + effortsAFaire + '</b> · Dist : <b>' + distTotale + ' m</b> · D+ : <b>' + elevTotale + ' m</b>'
-    : '<hr style="border:none;border-top:1px solid #eee;margin:7px 0;">' +
-      '<span style="color:#38a169;font-weight:600;">Tu es deja Local Legend !</span>';
-  return '<div style="font-family:-apple-system,sans-serif;font-size:13px;min-width:200px;">' +
-    '<b style="font-size:14px;color:#FC4C02;">' + seg.segment + '</b><br><br>' +
-    '<b>Distance :</b> ' + seg.distance_km.toFixed(2) + ' km &nbsp; <b>D+ :</b> ' + seg.denivele_m.toFixed(0) + ' m<br><br>' +
-    '<b>Local Legend :</b> ' + seg.ll_name + '<br>' +
-    '<b>LL :</b> ' + seg.ll_efforts + ' &nbsp; <b>Moi :</b> ' + myEfforts + '<br>' +
-    '<b>Ecart :</b> ' + (seg.ecart > 0 ? '-' : seg.ecart < 0 ? '+' : '') + Math.abs(seg.ecart) +
-    llBlock + '<br><br>' +
-    '<b>Priorite :</b> <span style="color:' + seg.color + ';font-weight:bold;">' + seg.indic_norm.toFixed(2) + '</span> ' + diff + '<br>' +
-    '<a href="https://www.strava.com/segments/' + seg.segment_id + '" target="_blank" style="color:#FC4C02;">Voir sur Strava</a></div>';
+    ? '<div style="margin-top:8px;padding:8px;background:#fff8f5;border-radius:8px;">' +
+      '<b style="color:#FC4C02;">Pour prendre le segment :</b><br>' +
+      '🏃 Efforts : <b>' + effortsAFaire + '</b><br>' +
+      '📏 Distance : <b>' + distTotale + ' m</b><br>' +
+      '⛰️ D+ : <b>' + elevTotale + ' m</b>' +
+      '</div>'
+    : '<div style="margin-top:8px;padding:8px;background:#f0fff4;border-radius:8px;color:#38a169;font-weight:600;">🏅 Tu es deja Local Legend !</div>';
+  return '<div style="font-family:-apple-system,sans-serif;font-size:13px;min-width:210px;">' +
+    '<b style="font-size:15px;color:#FC4C02;">' + seg.segment + '</b><br>' +
+    '<span style="font-size:11px;color:#888;">' + diff + '</span><br><br>' +
+    '📏 <b>' + seg.distance_km.toFixed(2) + ' km</b> &nbsp; ⛰️ <b>' + seg.denivele_m.toFixed(0) + ' m D+</b><br><br>' +
+    '<b>👑 ' + seg.ll_name + '</b> : ' + seg.ll_efforts + ' efforts<br>' +
+    '<b>🏃 Moi</b> : ' + myEfforts + ' efforts &nbsp; <span style="color:#FC4C02;">ecart ' +
+    (seg.ecart > 0 ? '-' : seg.ecart < 0 ? '+' : '') + Math.abs(seg.ecart) + '</span><br>' +
+    llBlock + '<br>' +
+    '<a href="https://www.strava.com/segments/' + seg.segment_id + '" target="_blank" style="color:#FC4C02;font-size:12px;">Voir sur Strava</a>' +
+    '</div>';
 }
 
 function buildList() {
@@ -496,7 +445,7 @@ function toggleVia(idx, event) {
   const el = document.getElementById('via-list');
   el.innerHTML = selectedViaSegs.length === 0
     ? 'Aucun segment selectionne'
-    : selectedViaSegs.map((s,i) => '<span style="display:block;">' + (i+1) + '. ' + s.segment.substring(0,30) + '</span>').join('');
+    : selectedViaSegs.map((s,i) => '<span style="display:block;">'+(i+1)+'. '+s.segment.substring(0,30)+'</span>').join('');
 }
 
 function applyFilters() {
@@ -534,15 +483,20 @@ function selectSegment(idx) {
   setSize('sm');
 }
 
-function resetAll() {
+function resetSelection() {
   selectedIdx = null;
+  Object.values(polylines).forEach(pl => pl.setStyle({opacity:0.85,weight:4}));
+  document.querySelectorAll('.seg-row').forEach(r => r.classList.remove('active'));
+}
+
+function resetAll() {
+  resetSelection();
   document.getElementById('slider-dist').value = 0;
   document.getElementById('slider-elev').value = 0;
   document.getElementById('dist-val').textContent = '0 km';
   document.getElementById('elev-val').textContent = '0 m';
   visibleIdxs = new Set(SEGMENTS.map(s => s.idx));
   Object.values(polylines).forEach(pl => pl.setStyle({opacity:0.85,weight:4}));
-  document.querySelectorAll('.seg-row').forEach(r => r.classList.remove('active'));
   buildList();
 }
 
@@ -572,19 +526,26 @@ function setPickMode(mode) {
 }
 
 map.on('click', function(e) {
-  if (!pickMode) return;
-  const lat = e.latlng.lat, lng = e.latlng.lng;
-  const color  = pickMode === 'start' ? '#00cc44' : '#ff3333';
-  const label  = pickMode === 'start' ? 'Depart' : 'Arrivee';
-  const marker = L.circleMarker([lat,lng], {radius:10,color:'white',weight:2,fillColor:color,fillOpacity:1})
-    .addTo(map).bindTooltip(label);
-  const btn = document.getElementById('btn-' + pickMode);
-  if (btn) { btn.textContent = '📍 ' + label + ': ' + lat.toFixed(4) + ', ' + lng.toFixed(4); btn.classList.add('active'); }
-  if (pickMode === 'start') { if(startMarker) map.removeLayer(startMarker); startMarker=marker; startPoint=[lat,lng]; }
-  else                      { if(endMarker)   map.removeLayer(endMarker);   endMarker=marker;   endPoint=[lat,lng]; }
-  document.getElementById('pick-hint').textContent = '';
-  pickMode = null;
-  openRouteSheet();
+  // Si en mode pick : place le marqueur
+  if (pickMode) {
+    const lat = e.latlng.lat, lng = e.latlng.lng;
+    const color  = pickMode === 'start' ? '#00cc44' : '#ff3333';
+    const label  = pickMode === 'start' ? 'Depart' : 'Arrivee';
+    const marker = L.circleMarker([lat,lng], {radius:10,color:'white',weight:2,fillColor:color,fillOpacity:1})
+      .addTo(map).bindTooltip(label);
+    const btn = document.getElementById('btn-' + pickMode);
+    if (btn) { btn.textContent = '📍 ' + label + ': ' + lat.toFixed(4) + ', ' + lng.toFixed(4); btn.classList.add('active'); }
+    if (pickMode === 'start') { if(startMarker) map.removeLayer(startMarker); startMarker=marker; startPoint=[lat,lng]; }
+    else                      { if(endMarker)   map.removeLayer(endMarker);   endMarker=marker;   endPoint=[lat,lng]; }
+    document.getElementById('pick-hint').textContent = '';
+    pickMode = null;
+    openRouteSheet();
+    return;
+  }
+  // Sinon : reset la selection si un segment est selectionne
+  if (selectedIdx !== null) {
+    resetSelection();
+  }
 });
 
 function haversine(a,b) {
@@ -635,10 +596,8 @@ async function generateRoute() {
     });
     const orsData = await res.json();
     if (!res.ok) throw new Error(JSON.stringify(orsData));
-
     const feature = orsData.features ? orsData.features[0] : null;
     if (!feature) throw new Error('Format ORS inattendu');
-
     const coords = feature.geometry.coordinates.map(c=>[c[1],c[0]]);
     const props  = feature.properties.summary;
     const distKm = parseFloat((props.distance/1000).toFixed(2));
@@ -686,10 +645,8 @@ async function generateRoute() {
     map.fitBounds(mainLayer.getBounds(),{padding:[80,80]});
 
     document.getElementById('route-stats').innerHTML =
-      'Trace : <b>'+distKm+' km</b><br>' +
-      'Total estime : <b>'+distTotale+' km</b><br>' +
-      'Denivele : <b>'+elevM+' m</b><br>' +
-      'Temps : <b>'+timeEst+' min</b> a '+pace+' min/km<br>' +
+      'Trace : <b>'+distKm+' km</b><br>Total estime : <b>'+distTotale+' km</b><br>' +
+      'Denivele : <b>'+elevM+' m</b><br>Temps : <b>'+timeEst+' min</b> a '+pace+' min/km<br>' +
       'Segments : <b>'+routeSegs.length+'</b>';
 
     document.getElementById('route-segs').innerHTML = routeSegs.length>0
