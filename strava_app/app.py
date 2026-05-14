@@ -28,7 +28,7 @@ STRAVA_CLIENT_ID     = os.environ.get("STRAVA_CLIENT_ID", "")
 STRAVA_CLIENT_SECRET = os.environ.get("STRAVA_CLIENT_SECRET", "")
 ORS_KEY              = os.environ.get("ORS_KEY=", "")
 BASE_URL             = "https://www.strava.com/api/v3"
-DAYS                 = 45
+DAYS                 = 20
 CACHE_DIR            = "user_cache"
 
 # Bounding box Montreal
