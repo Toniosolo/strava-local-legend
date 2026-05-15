@@ -3,43 +3,81 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Strava Local Legend - Mont-Royal</title>
+<title>Local Legend - Mont-Royal</title>
 <style>
   * { box-sizing:border-box; margin:0; padding:0; }
   body {
-    font-family:-apple-system,sans-serif; background:#f5f5f5;
-    display:flex; align-items:center; justify-content:center; min-height:100vh;
+    font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+    background:#f5f5f5; min-height:100vh;
+    display:flex; align-items:center; justify-content:center; padding:20px;
   }
   .card {
-    background:white; border-radius:16px; padding:40px 36px;
-    box-shadow:0 4px 24px rgba(0,0,0,0.10); text-align:center;
-    max-width:400px; width:90%;
+    background:white; border-radius:20px; padding:28px 24px;
+    box-shadow:0 4px 24px rgba(0,0,0,0.10); max-width:420px; width:100%;
   }
   .logo {
-    width:64px; height:64px; background:#FC4C02; border-radius:16px;
-    display:flex; align-items:center; justify-content:center; margin:0 auto 20px;
+    width:56px; height:56px; background:#FC4C02; border-radius:14px;
+    display:flex; align-items:center; justify-content:center; margin:0 auto 16px;
   }
-  .logo svg { width:36px; height:36px; fill:white; }
-  h1 { font-size:22px; font-weight:600; color:#222; margin-bottom:8px; }
-  p  { font-size:14px; color:#888; line-height:1.6; margin-bottom:28px; }
-  .connect-btn {
-    display:inline-flex; align-items:center; gap:10px;
-    background:#FC4C02; color:white; border:none; border-radius:10px;
-    padding:14px 28px; font-size:15px; font-weight:600; cursor:pointer;
-    text-decoration:none; transition:opacity 0.15s;
+  .logo svg { width:30px; height:30px; fill:white; }
+  h1 { font-size:20px; font-weight:700; color:#222; text-align:center; margin-bottom:6px; }
+  .subtitle { font-size:13px; color:#888; text-align:center; margin-bottom:24px; }
+  .section-title {
+    font-size:12px; font-weight:600; color:#555; text-transform:uppercase;
+    letter-spacing:0.05em; margin-bottom:10px;
   }
-  .connect-btn:hover { opacity:0.88; }
-  .connect-btn svg { width:20px; height:20px; fill:white; }
-  .note { font-size:12px; color:#bbb; margin-top:20px; }
-  .features {
-    display:grid; grid-template-columns:1fr 1fr; gap:10px;
-    margin-bottom:24px; text-align:left;
+  .token-input {
+    width:100%; padding:12px 14px; border:1.5px solid #ddd; border-radius:12px;
+    font-size:14px; color:#222; outline:none; transition:border 0.15s;
+    font-family:monospace;
   }
-  .feature {
-    background:#f9f9f9; border-radius:10px; padding:12px;
-    font-size:12px; color:#555; line-height:1.5;
+  .token-input:focus { border-color:#FC4C02; }
+  .token-input::placeholder { color:#bbb; font-family:-apple-system,sans-serif; }
+  .submit-btn {
+    width:100%; margin-top:10px; padding:13px; border:none; border-radius:12px;
+    background:#FC4C02; color:white; font-size:15px; font-weight:600;
+    cursor:pointer; transition:opacity 0.15s;
   }
-  .feature b { display:block; color:#222; margin-bottom:3px; font-size:13px; }
+  .submit-btn:hover { opacity:0.88; }
+  .submit-btn:disabled { opacity:0.5; cursor:not-allowed; }
+  .error-msg { color:#e53e3e; font-size:13px; text-align:center; margin-top:8px; min-height:18px; }
+  .separator {
+    display:flex; align-items:center; gap:10px; margin:20px 0;
+    color:#ccc; font-size:12px;
+  }
+  .separator::before, .separator::after { content:''; flex:1; height:1px; background:#eee; }
+  .guide-toggle {
+    width:100%; padding:11px 14px; border:1.5px solid #ddd; border-radius:12px;
+    background:#fff; color:#555; font-size:14px; cursor:pointer;
+    display:flex; align-items:center; justify-content:space-between; text-align:left;
+  }
+  .guide-toggle:hover { background:#f9f9f9; }
+  .guide-arrow { transition:transform 0.2s; font-size:12px; color:#aaa; }
+  .guide-arrow.open { transform:rotate(180deg); }
+  .guide-content {
+    display:none; margin-top:12px; padding:16px;
+    background:#fafafa; border-radius:12px; border:1px solid #eee;
+  }
+  .guide-content.open { display:block; }
+  .step { display:flex; gap:12px; margin-bottom:16px; }
+  .step:last-child { margin-bottom:0; }
+  .step-num {
+    width:26px; height:26px; border-radius:50%; background:#FC4C02;
+    color:white; font-size:12px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px;
+  }
+  .step-text { font-size:13px; color:#444; line-height:1.7; }
+  .step-text b { color:#222; }
+  .step-text a { color:#FC4C02; text-decoration:none; }
+  .step-text a:hover { text-decoration:underline; }
+  .step-text code {
+    background:#eee; padding:2px 6px; border-radius:4px;
+    font-size:11px; font-family:monospace; color:#333;
+  }
+  .warning {
+    background:#fff8f0; border:1px solid #fce8d0; border-radius:10px;
+    padding:10px 12px; font-size:12px; color:#b45309; margin-top:14px; line-height:1.6;
+  }
 </style>
 </head>
 <body>
@@ -48,24 +86,106 @@
     <svg viewBox="0 0 24 24"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
   </div>
   <h1>Local Legend Dashboard</h1>
-  <p>Visualise tes segments du Mont-Royal, suis les locales legendes et cree des parcours personnalises.</p>
+  <p class="subtitle">Segments du Mont-Royal · Local Legend tracker</p>
 
-  <div class="features">
-    <div class="feature"><b>🗺️ Carte interactive</b>Segments colores par priorite</div>
-    <div class="feature"><b>👑 Local Legend</b>Compare tes efforts au leader</div>
-    <div class="feature"><b>🏃 Parcours</b>Genere des itineraires via ORS</div>
-    <div class="feature"><b>📤 Export GPX</b>Importe dans Strava / Garmin</div>
+  <div class="section-title">Ton Access Token Strava</div>
+  <input class="token-input" id="token-input" type="password"
+         placeholder="Colle ton access token ici..." autocomplete="off">
+  <button class="submit-btn" id="submit-btn" onclick="submitToken()">
+    Acceder au dashboard
+  </button>
+  <div class="error-msg" id="error-msg"></div>
+
+  <div class="separator">Tu n'as pas de token ?</div>
+
+  <button class="guide-toggle" onclick="toggleGuide()">
+    <span>📖 Comment obtenir mon Access Token</span>
+    <span class="guide-arrow" id="guide-arrow">▼</span>
+  </button>
+
+  <div class="guide-content" id="guide-content">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-text">
+        Va sur <a href="https://www.strava.com/settings/api" target="_blank"><b>strava.com/settings/api</b></a>
+        et connecte-toi avec ton compte Strava.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-text">
+        Si tu n'as pas encore d'application, crees-en une :<br>
+        <b>Nom</b> : ce que tu veux (ex: <code>Mon App</code>)<br>
+        <b>Categorie</b> : Autre<br>
+        <b>Site web</b> : <code>http://localhost</code><br>
+        <b>Authorization Callback Domain</b> : <code>localhost</code><br>
+        Clique <b>Create</b> et accepte les conditions.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-text">
+        Une fois l'app creee, fais defiler la page vers le bas.<br>
+        Tu verras la section <b>Your Access Token</b>.<br>
+        Clique sur <b>Refresh and Copy Access Token</b>.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-text">
+        Colle le token dans le champ ci-dessus et clique <b>Acceder au dashboard</b>. C'est tout !
+      </div>
+    </div>
+    <div class="warning">
+      ⚠️ <b>Attention :</b> le token expire apres 6 heures. Si le dashboard cesse de fonctionner,
+      reviens ici et genere un nouveau token en cliquant a nouveau sur
+      "Refresh and Copy Access Token" sur strava.com/settings/api.
+    </div>
   </div>
-
-  {% if request.args.get('error') %}
-  <p style="color:#e53e3e;margin-bottom:16px;">Connexion annulee. Reessaie !</p>
-  {% endif %}
-
-  <a class="connect-btn" href="/login">
-    <svg viewBox="0 0 24 24"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
-    Se connecter avec Strava
-  </a>
-  <div class="note">Acces en lecture seule. Aucune donnee stockee en dehors du serveur.</div>
 </div>
+
+<script>
+function toggleGuide() {
+  const content = document.getElementById('guide-content');
+  const arrow   = document.getElementById('guide-arrow');
+  const isOpen  = content.classList.contains('open');
+  content.classList.toggle('open', !isOpen);
+  arrow.classList.toggle('open', !isOpen);
+}
+
+async function submitToken() {
+  const token = document.getElementById('token-input').value.trim();
+  const errEl = document.getElementById('error-msg');
+  const btn   = document.getElementById('submit-btn');
+  errEl.textContent = '';
+
+  if (!token) {
+    errEl.textContent = 'Colle ton access token avant de continuer.';
+    return;
+  }
+
+  btn.textContent = 'Verification...';
+  btn.disabled    = true;
+
+  try {
+    const res  = await fetch('/auth/token', {
+      method:  'POST',
+      headers: { 'Content-Type':'application/json' },
+      body:    JSON.stringify({ token }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Token invalide');
+    window.location.href = '/dashboard';
+  } catch(e) {
+    errEl.textContent = 'Token invalide ou expire. Verifie sur strava.com/settings/api.';
+    btn.textContent   = 'Acceder au dashboard';
+    btn.disabled      = false;
+  }
+}
+
+document.getElementById('token-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') submitToken();
+});
+</script>
 </body>
 </html>
